@@ -1,121 +1,181 @@
 package workorder.android.maximo.tivoli.ibm.com.maximoworkorder
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.annotation.TargetApi
+import android.content.Context
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
-import android.os.Build
+import android.os.AsyncTask
 import android.os.Bundle
-import android.text.TextUtils
+import android.os.Handler
+import android.os.Looper
+import android.support.v4.content.ContextCompat.startActivity
+import android.support.v7.app.AppCompatActivity
+import android.view.LayoutInflater
 import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.widget.TextView
+import android.view.ViewGroup
+import android.widget.*
+import kotlinx.android.synthetic.main.activity_list.*
+import javax.json.JsonObject
 
-import android.util.Log
 
-import kotlinx.android.synthetic.main.activity_login.*
+class WorkOrderListActivity : AppCompatActivity() {
 
-class LoginActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
-        password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
-            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                attemptLogin()
-                return@OnEditorActionListener true
-            }
-            false
-        })
-        sign_in_button.setOnClickListener { attemptLogin() }
+    companion object {
+        lateinit var mWorkOrderSet: WorkOrderViewModel.WorkOrderSet
     }
 
-    private fun attemptLogin() {
-        // Reset errors.
-        username.error = null
-        password.error = null
+    enum class Operation {PREVIOUS, NEXT}
 
-        // Store values at the time of the login attempt.
-        val userStr = username.text.toString()
-        val passwordStr = password.text.toString()
+    private var increment = 0
+    private var pageCount = 0
 
-        var cancel = false
-        var focusView: View? = null
+    private val uiHandler = Handler(Looper.getMainLooper())
 
-        // Check for a valid password, if the user entered one.
-        if (TextUtils.isEmpty(passwordStr)) {
-            password.error = getString(R.string.error_invalid_password)
-            focusView = password
-            cancel = true
-        }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_list)
 
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(userStr)) {
-            username.error = getString(R.string.error_field_required)
-            focusView = username
-            cancel = true
-        }
+        val listView = findViewById<ListView>(R.id.workorder_list)
+        listView.adapter = WorkOrderCustomAdapter(this, mWorkOrderSet)
+        listView.onItemClickListener = WorkOrderItemSelectedListener(this)
 
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView?.requestFocus()
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true)
-            //mAuthTask = UserLoginTask(userStr, passwordStr)
-            //mAuthTask!!.execute(null as Void?)
+        var pageMod = mWorkOrderSet.totalCount % mWorkOrderSet.pageSize
+        pageMod = if (pageMod == 0) 0 else 1
+        pageCount = mWorkOrderSet.totalCount / mWorkOrderSet.pageSize + pageMod
 
-            MaximoAPI.INSTANCE.login(userStr, passwordStr, "10.40.143.142", 9083, {
-                showProgress(false)
-                Log.d("APP", "Logged In")
-                val intent = Intent(this@LoginActivity.baseContext, MainActivity::class.java)
-                startActivity(intent)
+        pageTitle.setText("Page " + (increment + 1) + " of " + pageCount);
+
+        next.setOnClickListener(View.OnClickListener() {
+            increment = increment.inc()
+            loadPage(Operation.NEXT, {
+                pageTitle.setText("Page " + (increment + 1) + " of " + pageCount)
+                listView.adapter = WorkOrderCustomAdapter(this, mWorkOrderSet)
             }, { t ->
-                Log.d("APP", "Error", t)
-                showProgress(false)
-                password.error = getString(R.string.error_incorrect_password)
-                password.requestFocus()
+                Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
             })
+            checkPaginationButtonsEnabled()
+        })
+
+        prev.setEnabled(false);
+        prev.setOnClickListener(View.OnClickListener() {
+            increment = increment.dec()
+            loadPage(Operation.PREVIOUS, {
+                pageTitle.setText("Page " + (increment + 1) + " of " + pageCount)
+                listView.adapter = WorkOrderCustomAdapter(this, mWorkOrderSet)
+            }, { t ->
+                Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
+            })
+            checkPaginationButtonsEnabled()
+        })
+
+        add_button.setOnClickListener(View.OnClickListener() {
+            var workOrderFormIntent = Intent(this, WorkOrderFormActivity::class.java)
+            startActivity(this, workOrderFormIntent, null)
+        })
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        val intent = Intent(this@WorkOrderListActivity.baseContext, MainActivity::class.java)
+        var person = MaximoAPI.INSTANCE.loggedUser
+        intent.putExtra("PersonName", person.getString("displayname"))
+        intent.putExtra("PersonEmail", person.getString("primaryemail"))
+        startActivity(intent)
+    }
+
+    /**
+     * Method for enabling and disabling pagination buttons
+     */
+    private fun checkPaginationButtonsEnabled() {
+        if (increment + 1 == pageCount) {
+            next.setEnabled(false)
+        } else if (increment == 0) {
+            prev.setEnabled(false)
+        } else {
+            prev.setEnabled(true)
+            next.setEnabled(true)
         }
     }
 
     /**
-     * Shows the progress UI and hides the login form.
+     * Method for loading data in listview
+     * @param number
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private fun showProgress(show: Boolean) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+    private fun loadPage(operation: Operation, onOk: ()->Unit, onError: (t: Throwable)->Unit) {
+        AsyncTask.execute({
+            try {
+                val resultList = mutableListOf<JsonObject>()
 
-            login_form.visibility = if (show) View.GONE else View.VISIBLE
-            login_form.animate()
-                    .setDuration(shortAnimTime)
-                    .alpha((if (show) 0 else 1).toFloat())
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            login_form.visibility = if (show) View.GONE else View.VISIBLE
-                        }
-                    })
+                if (operation == Operation.PREVIOUS)
+                    mWorkOrderSet.resourceSet.previousPage()
+                else
+                    mWorkOrderSet.resourceSet.nextPage()
+                var i = 0
+                while (i.toInt() < MaximoAPI.PAGE_SIZE) {
+                    val resource = mWorkOrderSet.resourceSet.member(i)
+                    i = i.inc()
+                    resultList.add(resource.toJSON())
+                }
+                mWorkOrderSet = WorkOrderViewModel.WorkOrderSet(mWorkOrderSet.resourceSet,
+                        mWorkOrderSet.totalCount, mWorkOrderSet.pageSize, resultList)
 
-            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-            login_progress.animate()
-                    .setDuration(shortAnimTime)
-                    .alpha((if (show) 1 else 0).toFloat())
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-                        }
-                    })
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-            login_form.visibility = if (show) View.GONE else View.VISIBLE
+                uiHandler.post({onOk()})
+            } catch (t: Throwable) {
+                uiHandler.post({onError(t)})
+            }
+        })
+    }
+
+    private class WorkOrderItemSelectedListener(context : Context) : AdapterView.OnItemClickListener {
+        private val mContext: Context
+
+        init {
+            mContext = context
+        }
+
+        override fun onItemClick(parent : AdapterView<*>, view: View, position : Int, id : Long) {
+            var workOrder = mWorkOrderSet.workOrderList.get(position)
+            WorkOrderViewModel.INSTANCE.mWorkOrder = workOrder
+            var workOrderFormIntent = Intent(mContext, WorkOrderFormActivity::class.java)
+            startActivity(mContext, workOrderFormIntent, null)
         }
     }
+
+    private class WorkOrderCustomAdapter(context : Context, workOrderSet: WorkOrderViewModel.WorkOrderSet) : BaseAdapter() {
+
+        private val mContext: Context
+        private val mWorkOrderSet: WorkOrderViewModel.WorkOrderSet
+
+        init {
+            mContext = context
+            mWorkOrderSet = workOrderSet
+        }
+
+        // Fetch the row count for the list
+        override fun getCount(): Int {
+            return mWorkOrderSet.pageSize
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        override fun getItem(position: Int): Any {
+            return ""
+        }
+
+        override fun getView(position: Int, convertView: View?, viewGroup: ViewGroup?): View {
+            val layoutInflator = LayoutInflater.from(mContext)
+            val listRow = layoutInflator.inflate(R.layout.list_row, viewGroup, false)
+
+            //val workOrder = mWorkOrderList.get(position)
+            val workOrder = mWorkOrderSet.workOrderList.get(position)
+            val description = listRow.findViewById<TextView>(R.id.description)
+            val workOrderNumber = listRow.findViewById<TextView>(R.id.wonum)
+
+            description.text = workOrder.getString("description")
+            workOrderNumber.text = "Work Order: " + workOrder.getString("wonum")
+
+            return listRow
+        }
+    }
+
 }

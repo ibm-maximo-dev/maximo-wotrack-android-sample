@@ -4,16 +4,14 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Build
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
-
-import android.util.Log
-
 import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
@@ -64,13 +62,14 @@ class LoginActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            //mAuthTask = UserLoginTask(userStr, passwordStr)
-            //mAuthTask!!.execute(null as Void?)
 
-            MaximoAPI.INSTANCE.login(userStr, passwordStr, "10.40.143.142", 9083, {
+            MaximoAPI.INSTANCE.login(userStr, passwordStr, "9.85.169.65", 7001, {
                 showProgress(false)
                 Log.d("APP", "Logged In")
                 val intent = Intent(this@LoginActivity.baseContext, MainActivity::class.java)
+                var person = MaximoAPI.INSTANCE.loggedUser
+                intent.putExtra("PersonName", person.getString("displayname"))
+                intent.putExtra("PersonEmail", person.getString("primaryemail"))
                 startActivity(intent)
             }, { t ->
                 Log.d("APP", "Error", t)
