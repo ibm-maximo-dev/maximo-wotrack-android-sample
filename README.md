@@ -66,8 +66,32 @@ while (i.toInt() < PAGE_SIZE) {
     resultList.add(jsonObject) // Add retrieved JsonObject instance to the list
 }
 ```
+This is a list of the input parameters that may be provided to select Work Order records:
+ - oslc.select: Allow the user to fetch a set of properties for the selected objects, instead of loading all their properties. This is aimed for applications that are developed for environments with small memory footprints.
+ ```kotlin
+     workOrderSet.select("spi:wonum", "spi:description", "spi:status")
+ ```
+ - oslc.where: Allow the user to define a where clause to filter record set.
+  ```kotlin
+     workOrderSet.where("spi:istask=0 and spi:status='WAPPR'")
+ ```
+ - oslc.paging: Enable/disable paging for the selected record set.
+  ```kotlin
+     workOrderSet.paging(true)
+ ```
+ - oslc.pageSize: Set the page size for the selected record set.
+  ```kotlin
+     workOrderSet.pageSize(5)
+ ```
+ - oslc.orderBy: Allow the user to define a set the properties used to sort the obtained record set.
+  ```kotlin
+     workOrderSet.orderBy("spi:wonum")
+ ```
+ - oslc.searchTerms: Record wide text search for tokens specified as this query parameter value.
+  ```kotlin
+     workOrderSet.searchTerms("pump")
+ ```
 
-        
 ## Show basic Work Order details
 
 ## Edit Work Order Details
