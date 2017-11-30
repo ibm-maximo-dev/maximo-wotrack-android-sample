@@ -1,4 +1,4 @@
-# Android Sample Maximo Work Order Tracking Application
+# Maximo Work Order Tracking Android Sample Application
 
 This is a very simple Android Kotlin application that has been developed in order to demonstrate how easily developers and business partners can build their own solutions by leveraging the Maximo REST APIs that are available in the Maximo Platform. This tutorial will guide you on how to use these APIs, and will provide instructions for building and testing developed applications.
 
