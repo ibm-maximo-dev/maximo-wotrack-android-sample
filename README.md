@@ -43,7 +43,7 @@ try {
 ```
 ## List Work Orders that are Waiting for Approval
 This feature allows the users to list all Work Orders which are on the "Waiting for Approval" status and are visible to their Organization and Site.
-This API method provides a set of input parameters that the users may provide to select a collection of Work Orders records.
+This API method provides a set of input parameters that the users may supply in order to select a collection of Work Orders records.
 
 This is a code sample that shows how to select a set of Work Order records using options like pagination, sorting, and filtering:
 
@@ -67,35 +67,43 @@ while (i.toInt() < PAGE_SIZE) {
 }
 ```
 This is a list of the input parameters that may be provided to select Work Order records:
- - oslc.select: Allow the user to fetch a set of properties for the selected objects, instead of loading all their properties. This is aimed for applications that are developed for environments with small memory footprints.
+ - oslc.select: This is a String var-args parameter that allows the user to fetch a set of properties for the selected objects, instead of loading all their properties. This is aimed for applications that are developed for environments with small memory footprints.
  ```kotlin
      workOrderSet.select("spi:wonum", "spi:description", "spi:status")
  ```
- - oslc.where: Allow the user to define a where clause to filter record set.
+ - oslc.where: This is a String parameter in OSLC query syntax format (SQL-based) that allows the user to define a where clause to filter thhe record set.
   ```kotlin
      workOrderSet.where("spi:istask=0 and spi:status='WAPPR'")
  ```
- - oslc.paging: Enable/disable paging for the selected record set.
+ - oslc.paging: This is a flag that enables/disables paging for the selected record set.
   ```kotlin
      workOrderSet.paging(true)
  ```
- - oslc.pageSize: Set the page size for the selected record set.
+ - oslc.pageSize: Integer parameter that defines the page size for the selected record set.
   ```kotlin
      workOrderSet.pageSize(5)
  ```
- - oslc.orderBy: Allow the user to define a set the properties used to sort the obtained record set.
+ - oslc.orderBy: This is a String var-args parameter that allows the user to define a set the properties used to sort the obtained record set.
   ```kotlin
      workOrderSet.orderBy("spi:wonum")
  ```
- - oslc.searchTerms: Record wide text search for tokens specified as this query parameter value.
+ - oslc.searchTerms: Another String var-args parameter that performs record wide text searchs for tokens specified.
   ```kotlin
-     workOrderSet.searchTerms("pump")
+     workOrderSet.searchTerms("pump", "broken")
  ```
 
-## Show basic Work Order details
+So in order to understand how this feature works, we need to explain a few steps.
+Developers that have built solutions for the Maximo Platform before will find the Maximo REST API classes Resource and ResourceSet to be very similar to the Mbo/MboSet pair available in the Maximo MBO framework.
 
-## Edit Work Order Details
+This was intentionally designed to make it as simples as possible for a Maximo developer to build/integrate solutions with Maximo by using these remote APIs from external applications.
 
-## Approve a Work Order
+Hence, using an instance of the MaximoConnector class, you may fetch a ResourceSet object for any of the Object Structures that are published on the Maximo REST API.
+
+In the following example, we obtain an instance of the ResourceSet class for the MXWO object structure which holds Work Order records information.
+ ```kotlin
+    val workOrderSet = connector.resourceSet("mxwo") // This returns a ResourceSet object instance
+ ```
+
+## Update a Work Order
 
 ## Create a new Work Order
