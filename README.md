@@ -66,7 +66,37 @@ while (i.toInt() < PAGE_SIZE) {
     resultList.add(jsonObject) // Add retrieved JsonObject instance to the list
 }
 ```
-This is a list of the input parameters that may be provided to select Work Order records:
+### ResourceSet Component
+So in order to understand how this feature works, we need to explain a few steps.
+Developers that have built solutions for the Maximo Platform before will find the Maximo REST API classes Resource and ResourceSet to be very similar to the Mbo/MboSet pair available in the Maximo MBO framework.
+
+This was intentionally designed to make it as simples as possible for a Maximo developer to build/integrate solutions with Maximo by using these remote APIs from external applications.
+
+Hence, using an instance of the MaximoConnector class, you may fetch a ResourceSet object for any of the Object Structures that are published on the Maximo REST API.
+
+In the following example, we obtain an instance of the ResourceSet class for the MXWO object structure which holds Work Order records information.
+ ```kotlin
+    val workOrderSet = connector.resourceSet("mxwo") // This returns a ResourceSet object instance
+ ```
+Once you hold an instance of the ResourseSet class, you may actually perform actions like searching for existing records,  ordering records by a specific set of columns, fetching a records page and so much more.
+
+This is a list of the most commonly used actions and input parameters that may be provided to select Work Order records:
+ - fetch(): Fetches a set of records according to the input parameters provided.
+ - load(): Loads a set of records according to the input parameters provided.
+ - count(): Returns the count for the current number of records loaded into this set.
+ - totalCount(): Returns the total count (remote) for all records persisted for this set (Object Structure).
+ - nextPage(): Fetches the next page of records for this set.
+ - previousPage(): Fetches the previous page of records for this set.
+ - member(value : Int): Returns an element previously loaded into this set, using the specified index position.
+ ```kotlin
+     workOrderSet.fetch()
+     workOrderSet.load()
+     var count = workOrderSet.count()
+     var totalCount = workOrderSet.totalCount()
+     workOrderSet.nextPage()
+     workOrderSet.previousPage()
+     var resourceObject = workOrderSet.member(0)
+ ```
  - oslc.select: This is a String var-args parameter that allows the user to fetch a set of properties for the selected objects, instead of loading all their properties. This is aimed for applications that are developed for environments with small memory footprints.
  ```kotlin
      workOrderSet.select("spi:wonum", "spi:description", "spi:status")
@@ -92,17 +122,12 @@ This is a list of the input parameters that may be provided to select Work Order
      workOrderSet.searchTerms("pump", "broken")
  ```
 
-So in order to understand how this feature works, we need to explain a few steps.
-Developers that have built solutions for the Maximo Platform before will find the Maximo REST API classes Resource and ResourceSet to be very similar to the Mbo/MboSet pair available in the Maximo MBO framework.
-
-This was intentionally designed to make it as simples as possible for a Maximo developer to build/integrate solutions with Maximo by using these remote APIs from external applications.
-
-Hence, using an instance of the MaximoConnector class, you may fetch a ResourceSet object for any of the Object Structures that are published on the Maximo REST API.
-
-In the following example, we obtain an instance of the ResourceSet class for the MXWO object structure which holds Work Order records information.
+So after successfully loading these elements into the ResourceSet, we need to convert them into a friendly data format that is usable inside the application context. That's when JSON objects come into action.
  ```kotlin
-    val workOrderSet = connector.resourceSet("mxwo") // This returns a ResourceSet object instance
+     val resourceObject = workOrderSet.member(0) // I am a Resource object
+     val jsonObject = resourceObject.toJSON() // I am a JSON object, much more friendly and human-readable.
  ```
+The Resource class is simply a data object representation of an Object Structure. It provides several utility methods to update, merge, add or even delete an Object Structure. It also provides methods to allow conversions to other data types like: JSON or byte arrays. In the previous example, after fetching a previously loaded Resource object, we convert that to it's JSON object representation.
 
 ## Update a Work Order
 
