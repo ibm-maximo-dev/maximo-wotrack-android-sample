@@ -1,27 +1,42 @@
 package workorder.android.maximo.tivoli.ibm.com.maximoworkorder
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.annotation.TargetApi
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    var workOrderListDisplayed = false
+    lateinit var workOrderListIntent : Intent
+    lateinit var personName : String
+    lateinit var personEmail : String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        /*
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
         }
+        */
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -29,6 +44,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
+
+        personName = intent.getStringExtra("PersonName")
+        personEmail = intent.getStringExtra("PersonEmail")
+
+        val header = findViewById<NavigationView>(R.id.nav_view).getHeaderView(0)
+        var personNameField = header.findViewById<TextView>(R.id.personname);
+        var personEmailField = header.findViewById<TextView>(R.id.personemail);
+        personNameField.setText(personName)
+        personEmailField.setText(personEmail)
     }
 
     override fun onBackPressed() {
@@ -58,6 +82,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
         when (item.itemId) {
+            /*
             R.id.nav_camera -> {
                 // Handle the camera action
             }
@@ -76,9 +101,65 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_send -> {
 
             }
+            */
+            R.id.nav_workorders -> {
+                Log.d("APP", "Loading Work Orders list")
+                loadWorkOrders()
+            }
         }
 
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    private fun loadWorkOrders() {
+        // Show a progress spinner, and kick off a background task to
+        // perform the user login attempt.
+        showProgress(true)
+
+        if (workOrderListDisplayed) {
+            startActivity(workOrderListIntent)
+            return
+        }
+
+        MaximoAPI.INSTANCE.listWorkOrders({ workOrderSet ->
+            showProgress(false)
+            Log.d("APP", "Data retrieved successfully")
+            workOrderListIntent = Intent(this@MainActivity.baseContext, WorkOrderListActivity::class.java)
+            WorkOrderListActivity.mWorkOrderSet = workOrderSet
+            workOrderListDisplayed = true
+            startActivity(workOrderListIntent)
+        }, { t ->
+            Log.d("APP", "Error", t)
+            showProgress(false)
+            Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
+        })
+    }
+
+    /**
+     * Shows the progress UI and hides the login form.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private fun showProgress(show: Boolean) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+
+            list_progress.visibility = if (show) View.VISIBLE else View.GONE
+            list_progress.animate()
+                    .setDuration(shortAnimTime)
+                    .alpha((if (show) 1 else 0).toFloat())
+                    .setListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            list_progress.visibility = if (show) View.VISIBLE else View.GONE
+                        }
+                    })
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            list_progress.visibility = if (show) View.VISIBLE else View.GONE
+        }
     }
 }

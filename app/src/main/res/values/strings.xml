@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Work Orders</string>
+    <string name="app_name">Maximo Android Work Order Manager</string>
 
     <!-- Strings related to login -->
     <string name="prompt_username">Username</string>
@@ -10,10 +10,24 @@
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="error_invalid_password">The password is invalid</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_workorder_activity">Work Orders</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <!-- String related to Work Order Form -->
+    <string name="prompt_wonum">Work Order</string>
+    <string name="prompt_description">Description</string>
+    <string name="prompt_schedule_start_date">Schedule Start Date</string>
+    <string name="prompt_schedule_start_time">Schedule Start Time</string>
+    <string name="prompt_schedule_finish_date">Schedule Finish Date</string>
+    <string name="prompt_schedule_finish_time">Schedule Finish Time</string>
+    <string name="prompt_duration">Duration</string>
+    <string name="action_save">Save</string>
+    <string name="action_save_short">Save</string>
+
+    <string name="pick_date">Select a Date</string>
+
 </resources>
