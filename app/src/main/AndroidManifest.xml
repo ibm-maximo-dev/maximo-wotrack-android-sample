@@ -36,7 +36,12 @@
         <activity
             android:name=".WorkOrderFormActivity"
             android:label="@string/title_workorder_activity"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".WorkOrderStatusActivity"
+            android:label="@string/title_workorder_activity"
+            android:theme="@android:style/Theme.Holo.Dialog"></activity>
+
     </application>
 
 </manifest>
