@@ -3,16 +3,20 @@ package workorder.android.maximo.tivoli.ibm.com.maximoworkorder
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.TimePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.DatePicker
 import android.widget.TextView
 import android.widget.TimePicker
 import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_workorder_form.*
+import kotlinx.android.synthetic.main.content_workorder_form.*
+import kotlinx.android.synthetic.main.workorder_form_bar.*
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -43,6 +47,7 @@ class WorkOrderFormActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_workorder_form)
+        setSupportActionBar(workorder_toolbar)
 
         var mWorkOrder = WorkOrderViewModel.INSTANCE.mWorkOrder
 
@@ -119,6 +124,28 @@ class WorkOrderFormActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             showDialog(SCHEDULE_FINISH_TIME_DIALOG_ID)
         })
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        when (item.itemId) {
+            R.id.action_change_status -> {
+                var statusListIntent = Intent(this@WorkOrderFormActivity.baseContext, WorkOrderStatusActivity::class.java)
+                var currentStatus = WorkOrderViewModel.INSTANCE.mWorkOrder?.getString("status")
+                statusListIntent.putExtra("CurrentStatus", currentStatus)
+                startActivity(statusListIntent)
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.status, menu)
+        return true
     }
 
     override fun onBackPressed() {

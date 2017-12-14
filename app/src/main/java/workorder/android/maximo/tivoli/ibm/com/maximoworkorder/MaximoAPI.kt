@@ -70,6 +70,30 @@ class MaximoAPI {
         })
     }
 
+    fun listWorkOrderStatuses(onOk: (statusSet: List<JsonObject>)->Unit, onError: (t: Throwable)->Unit) {
+        AsyncTask.execute({
+            try {
+                val statusSet = connector.resourceSet("mxdomain")
+                val resultList = mutableListOf<JsonObject>()
+                statusSet.where("spi:domainid=\"WOSTATUS\"")
+                statusSet.fetch()
+                val woStatusDomain = statusSet.member(0)
+                var woStatusJSON = woStatusDomain.toJSON()
+                var values = woStatusJSON.getJsonArray("synonymdomain")
+                var i = 0
+                while (i.toInt() < values.size) {
+                    val domainValue = values[i]
+                    i = i.inc()
+                    resultList.add(domainValue as JsonObject)
+                }
+
+                uiHandler.post({onOk(resultList)})
+            } catch (t: Throwable) {
+                uiHandler.post({onError(t)})
+            }
+        })
+    }
+
     fun updatetWorkOrder(workOrder: JsonObject, onOk: ()->Unit, onError: (t: Throwable)->Unit) {
         AsyncTask.execute({
             try {
