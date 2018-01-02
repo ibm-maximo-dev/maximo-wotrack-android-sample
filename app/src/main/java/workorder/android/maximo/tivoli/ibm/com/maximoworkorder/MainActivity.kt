@@ -6,6 +6,7 @@ import android.annotation.TargetApi
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.support.design.widget.FloatingActionButton
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
@@ -14,6 +15,8 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
+import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
@@ -25,6 +28,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     lateinit var workOrderListIntent : Intent
     lateinit var personName : String
     lateinit var personEmail : String
+    lateinit var workOrderList : WorkOrderList
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +57,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var personEmailField = header.findViewById<TextView>(R.id.personemail);
         personNameField.setText(personName)
         personEmailField.setText(personEmail)
+
+        loadMainWorkOrders()
     }
 
     override fun onBackPressed() {
@@ -111,6 +117,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
+
+    private fun loadMainWorkOrders() {
+        MaximoAPI.INSTANCE.listWorkOrders({ workOrderSet ->
+            Log.d("APP", "Data retrieved successfully")
+            var pageTitle = findViewById<TextView>(R.id.pageTitleMain)
+            var prevButton = findViewById<Button>(R.id.prevMain)
+            var nextButton = findViewById<Button>(R.id.nextMain)
+            var listView = findViewById<ListView>(R.id.workorder_list_main)
+            var addButton = findViewById<FloatingActionButton>(R.id.add_button_main)
+            WorkOrderList.mWorkOrderSet = workOrderSet
+            workOrderList = WorkOrderList(this, listView, pageTitle, nextButton, prevButton, addButton)
+        }, { t ->
+            Log.d("APP", "Error", t)
+            showProgress(false)
+            Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
+        })
+    }
+
 
     private fun loadWorkOrders() {
         // Show a progress spinner, and kick off a background task to

@@ -63,7 +63,7 @@ class LoginActivity : AppCompatActivity() {
             // perform the user login attempt.
             showProgress(true)
 
-            MaximoAPI.INSTANCE.login(userStr, passwordStr, "9.80.233.92", 7001, {
+            MaximoAPI.INSTANCE.login(userStr, passwordStr, "9.85.199.172", 7001, {
                 showProgress(false)
                 Log.d("APP", "Logged In")
                 val intent = Intent(this@LoginActivity.baseContext, MainActivity::class.java)
