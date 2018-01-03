@@ -129,6 +129,28 @@ So after successfully loading these elements into the ResourceSet, we need to co
  ```
 The Resource class is simply a data object representation of an Object Structure. It provides several utility methods to update, merge, add or even delete an Object Structure. It also provides methods to allow conversions to other data types like: JSON or byte arrays. In the previous example, after fetching a previously loaded Resource object, we convert that to it's JSON object representation.
 
-## Update a Work Order
+Up to this point, we expect you to be able to list and view data that is provided by the Maximo REST APIs, through the use of the methods exhibited in this tutorial. In the remainder of this tutorial, we aim to demonstrate how to modify and create new persistent data records.
 
-## Create a new Work Order
+## Create/Update a Work Order
+Before we discuss the actual methods available for updating and creating new data records, we need to provide some background information about how these methods actually work.
+
+### JSON
+
+REST APIs usually rely on JSON (JavaScript Object Notation) format to transport data between the client and the server.
+Hence, in order to modify or create records, you need to provide a JSON representation of the record you wish to modify or create as an input for the API method.
+
+Building and modifying JSON structures can be easily accomplished by the use of specific APIs, almost every modern programming language provides a set of APIs to build and manipulate JSON. In this tutorial, we exhibit a very simple example of how to build JSON objects in the Android/Kotlin programming language.
+
+ ```kotlin
+     var objectBuilder = Json.createObjectBuilder() // This creates a JsonObjectBuilder component.
+     objectBuilder.add("wonum", wonum.text.toString()) // Adding "WONUM" attribute to the JSON structure.
+     objectBuilder.add("siteid", MaximoAPI.INSTANCE.loggedUser.getString("locationsite")) // Adding "SITEID" attribute.
+     objectBuilder.add("orgid", MaximoAPI.INSTANCE.loggedUser.getString("locationorg")) // Adding "ORGID" attribute.
+     objectBuilder.build() // This returns a JsonObject instance.
+ ```
+ 
+The objectBuilder component works similar to a Map data structure. It holds a key-value pair for every attribute that is added to the Object Builder. After you have finished setting up the attributes, you just need to invoke the build() method and it returns a JsonObject instance that is required for updating/creating records through the Maximo REST APIs.
+
+### Creating a Work Order
+
+### Updating a Work Order
