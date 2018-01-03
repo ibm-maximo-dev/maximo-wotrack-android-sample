@@ -142,15 +142,62 @@ Hence, in order to modify or create records, you need to provide a JSON represen
 Building and modifying JSON structures can be easily accomplished by the use of specific APIs, almost every modern programming language provides a set of APIs to build and manipulate JSON. In this tutorial, we exhibit a very simple example of how to build JSON objects in the Android/Kotlin programming language.
 
  ```kotlin
-     var objectBuilder = Json.createObjectBuilder() // This creates a JsonObjectBuilder component.
-     objectBuilder.add("wonum", wonum.text.toString()) // Adding "WONUM" attribute to the JSON structure.
-     objectBuilder.add("siteid", MaximoAPI.INSTANCE.loggedUser.getString("locationsite")) // Adding "SITEID" attribute.
-     objectBuilder.add("orgid", MaximoAPI.INSTANCE.loggedUser.getString("locationorg")) // Adding "ORGID" attribute.
-     objectBuilder.build() // This returns a JsonObject instance.
+// This creates a JsonObjectBuilder component.
+var objectBuilder = Json.createObjectBuilder()
+// Adding 'WONUM' attribute to the JSON structure.
+objectBuilder.add("wonum", wonum.text.toString())
+// Adding 'SITEID' attribute.
+objectBuilder.add("siteid", MaximoAPI.INSTANCE.loggedUser.getString("locationsite"))
+// Adding 'ORGID' attribute.
+objectBuilder.add("orgid", MaximoAPI.INSTANCE.loggedUser.getString("locationorg"))
+// This returns a JsonObject instance.
+objectBuilder.build()
  ```
- 
+
 The objectBuilder component works similar to a Map data structure. It holds a key-value pair for every attribute that is added to the Object Builder. After you have finished setting up the attributes, you just need to invoke the build() method and it returns a JsonObject instance that is required for updating/creating records through the Maximo REST APIs.
 
 ### Creating a Work Order
+The process for creating a new Work Order is very simple. The most complex piece is building a JSON object that represents a new Work Order record. This can sometimes be a little time consuming, given the large number of attributes available in the MXWO Object Structure. Also, it is very important that you observe the following set of rules:
+
+- All Maximo field and attribute rules and validations are also applicable when using the Maximo REST API methods.
+- Make sure that all the required fields have been informed.
+- Take special care with domain attributes, so that you don't end up using an invalid value.
+
+If you follow these instructions you'll likely avoid some exceptions, headaches and save some time.
+Now that you have the JSON object, you need to build the URI used as an argument for the create() method available 
+
+This is a very simplified code example for creating a new Work Order: 
+
+ ```kotlin
+// Building a new Work Order JSON object.
+var workOrder = buildWorkOrderJSON()
+// Using the MaximoConnector object previously obtained during the Application Login to build the URI string.
+var uri = connector.currentURI + "/os/mxwo"
+// Invoking the create() method available in the MaximoConnector component.
+connector.create(uri, workOrder)
+ ```
 
 ### Updating a Work Order
+The update method works in the same way that the create method does. Therefore, all the instructions provided in the previous section are also applicable here.
+
+This method also takes two arguments as input.
+The first argument is the URI which is used to identify which object is to be updated.
+In the update process, the URI is composed by a concatenation of the Object Structure context path and the Object ID.
+
+This is an example of a URI for a Work Order object with ID 1022.
+ ```kotlin
+// URI = http://<IP>:<PORT>/maximo/oslc/os/mxwo/1022
+var uri = connector.currentURI + "/os/mxwo/" + workOrder.getJsonNumber("workorderid")
+ ```
+
+The second argument is an updated copy of the original JsonObject.
+Here is another simplified example on how to update an existing Work Order: 
+
+ ```kotlin
+// Obtaining an updated instance of the Work Order.
+var updatedWorkOrder = updateWorkOrder(originalWorkOrder)
+// Using the MaximoConnector object previously obtained during the Application Login to build the URI string.
+var uri = connector.currentURI + "/os/mxwo/" + updatedWorkOrder.getJsonNumber("workorderid")
+// Invoking the update() method available in the MaximoConnector component.
+connector.update(uri, updatedWorkOrder)
+ ```
