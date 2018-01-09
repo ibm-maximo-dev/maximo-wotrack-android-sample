@@ -14,7 +14,7 @@ class MaximoAPI {
     companion object {
         @JvmField
         val INSTANCE = MaximoAPI()
-        const val PAGE_SIZE = 5
+        const val PAGE_SIZE = 10
     }
 
     lateinit var options: Options

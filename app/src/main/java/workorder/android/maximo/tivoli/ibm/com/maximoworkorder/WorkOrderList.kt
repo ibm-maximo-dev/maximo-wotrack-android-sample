@@ -24,62 +24,18 @@ class WorkOrderList {
 
     enum class Operation {PREVIOUS, NEXT}
 
-    private var increment = 0
-    private var pageCount = 0
-
     private val uiHandler = Handler(Looper.getMainLooper())
 
-    constructor(context: Context, listView: ListView, pageTitle: TextView, next: Button, prev: Button, add_button: FloatingActionButton) {
+    constructor(context: Context, listView: ListView, add_button: FloatingActionButton) {
         listView.adapter = WorkOrderCustomAdapter(context, mWorkOrderSet)
         listView.onItemClickListener = WorkOrderItemSelectedListener(context)
-
-        var pageMod = mWorkOrderSet.totalCount % mWorkOrderSet.pageSize
-        pageMod = if (pageMod == 0) 0 else 1
-        pageCount = mWorkOrderSet.totalCount / mWorkOrderSet.pageSize + pageMod
-
-        pageTitle.setText("Page " + (increment + 1) + " of " + pageCount);
-
-        next.setOnClickListener(View.OnClickListener() {
-            increment = increment.inc()
-            loadPage(Operation.NEXT, {
-                pageTitle.setText("Page " + (increment + 1) + " of " + pageCount)
-                listView.adapter = WorkOrderCustomAdapter(context, mWorkOrderSet)
-            }, { t ->
-                Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
-            })
-            checkPaginationButtonsEnabled(next, prev)
-        })
-
-        prev.setEnabled(false);
-        prev.setOnClickListener(View.OnClickListener() {
-            increment = increment.dec()
-            loadPage(Operation.PREVIOUS, {
-                pageTitle.setText("Page " + (increment + 1) + " of " + pageCount)
-                listView.adapter = WorkOrderCustomAdapter(context, mWorkOrderSet)
-            }, { t ->
-                Toast.makeText(context, t.message, Toast.LENGTH_SHORT).show()
-            })
-            checkPaginationButtonsEnabled(next, prev)
-        })
+        var scrollListener = WorkOrderScrollerListener(5,this, context, listView)
+        listView.setOnScrollListener (scrollListener)
 
         add_button.setOnClickListener(View.OnClickListener() {
             var workOrderFormIntent = Intent(context, WorkOrderFormActivity::class.java)
             ContextCompat.startActivity(context, workOrderFormIntent, null)
         })
-    }
-
-    /**
-     * Method for enabling and disabling pagination buttons
-     */
-    private fun checkPaginationButtonsEnabled(next: Button, prev: Button) {
-        if (increment + 1 == pageCount) {
-            next.setEnabled(false)
-        } else if (increment == 0) {
-            prev.setEnabled(false)
-        } else {
-            prev.setEnabled(true)
-            next.setEnabled(true)
-        }
     }
 
     /**
@@ -90,6 +46,7 @@ class WorkOrderList {
         AsyncTask.execute({
             try {
                 val resultList = mutableListOf<JsonObject>()
+                resultList.addAll(mWorkOrderSet.workOrderList)
 
                 if (operation == Operation.PREVIOUS)
                     mWorkOrderSet.resourceSet.previousPage()
@@ -126,19 +83,47 @@ class WorkOrderList {
         }
     }
 
+    private class WorkOrderScrollerListener(visibleThreshold: Int, list: WorkOrderList,
+                                            context: Context, listView: ListView) : EndlessScrollListener(visibleThreshold) {
+        private val mContext: Context
+        private val mList: WorkOrderList
+        private val mListView : ListView
+
+        init {
+            mContext = context
+            mList = list
+            mListView = listView
+        }
+
+        override fun onLoadMore(page: Int, totalItemsCount: Int): Boolean {
+            mList.loadPage(Operation.NEXT, {
+                (mListView.adapter as WorkOrderCustomAdapter).updateWorkOrderSet(mWorkOrderSet)
+            }, { t ->
+                Toast.makeText(mContext, t.message, Toast.LENGTH_SHORT).show()
+            })
+
+            return true
+        }
+    }
+
     private class WorkOrderCustomAdapter(context : Context, workOrderSet: WorkOrderViewModel.WorkOrderSet) : BaseAdapter() {
 
         private val mContext: Context
-        private val mWorkOrderSet: WorkOrderViewModel.WorkOrderSet
+        private var mWorkOrderSet: WorkOrderViewModel.WorkOrderSet
 
         init {
             mContext = context
             mWorkOrderSet = workOrderSet
         }
 
+        public fun updateWorkOrderSet(workOrderSet: WorkOrderViewModel.WorkOrderSet) {
+            mWorkOrderSet = workOrderSet
+            notifyDataSetChanged()
+        }
+
         // Fetch the row count for the list
         override fun getCount(): Int {
-            return mWorkOrderSet.pageSize
+            return mWorkOrderSet.workOrderList.count()
         }
 
         override fun getItemId(position: Int): Long {

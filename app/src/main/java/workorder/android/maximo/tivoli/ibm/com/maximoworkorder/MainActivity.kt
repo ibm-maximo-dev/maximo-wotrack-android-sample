@@ -15,7 +15,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -121,13 +120,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun loadMainWorkOrders() {
         MaximoAPI.INSTANCE.listWorkOrders({ workOrderSet ->
             Log.d("APP", "Data retrieved successfully")
-            var pageTitle = findViewById<TextView>(R.id.pageTitleMain)
-            var prevButton = findViewById<Button>(R.id.prevMain)
-            var nextButton = findViewById<Button>(R.id.nextMain)
             var listView = findViewById<ListView>(R.id.workorder_list_main)
             var addButton = findViewById<FloatingActionButton>(R.id.add_button_main)
             WorkOrderList.mWorkOrderSet = workOrderSet
-            workOrderList = WorkOrderList(this, listView, pageTitle, nextButton, prevButton, addButton)
+            workOrderList = WorkOrderList(this, listView, addButton)
         }, { t ->
             Log.d("APP", "Error", t)
             showProgress(false)
