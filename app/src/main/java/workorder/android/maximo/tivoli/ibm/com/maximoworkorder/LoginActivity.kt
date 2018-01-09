@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -15,8 +16,13 @@ import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
+    var prefs: SharedPreferences? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        prefs = this.getSharedPreferences("login_prefs", 0)
+
         setContentView(R.layout.activity_login)
         password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
             if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
@@ -25,20 +31,36 @@ class LoginActivity : AppCompatActivity() {
             }
             false
         })
+        val host = prefs!!.getString("hostport", null)
+        val user = prefs!!.getString("username", null)
+
+        if (host!=null) hostport.setText(host)
+        if (user!=null) username.setText(user)
+
         sign_in_button.setOnClickListener { attemptLogin() }
     }
 
     private fun attemptLogin() {
         // Reset errors.
+        hostport.error = null
         username.error = null
         password.error = null
 
         // Store values at the time of the login attempt.
+        val hostportStr = hostport.text.toString()
         val userStr = username.text.toString()
         val passwordStr = password.text.toString()
 
         var cancel = false
         var focusView: View? = null
+
+
+        // Check for a valid host port
+        if (TextUtils.isEmpty(hostportStr)) {
+            password.error = getString(R.string.error_host_port)
+            focusView = hostport
+            cancel = true
+        }
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(passwordStr)) {
@@ -63,9 +85,17 @@ class LoginActivity : AppCompatActivity() {
             // perform the user login attempt.
             showProgress(true)
 
-            MaximoAPI.INSTANCE.login(userStr, passwordStr, "qawin17.swg.usma.ibm.com", 9995, {
+            val portIdx = hostportStr.indexOf(':')
+            var host = hostportStr.substring(0, portIdx)
+            var port = Integer.parseInt(hostportStr.substring(portIdx+1))
+            Log.d("APP", "Connecting to $host:$port")
+            MaximoAPI.INSTANCE.login(userStr, passwordStr, host, port, {
                 showProgress(false)
                 Log.d("APP", "Logged In")
+
+                // store host and user
+                prefs!!.edit().putString("hostport", hostportStr).putString("username", userStr).apply()
+
                 val intent = Intent(this@LoginActivity.baseContext, MainActivity::class.java)
                 var person = MaximoAPI.INSTANCE.loggedUser
                 intent.putExtra("PersonName", person.getString("displayname"))

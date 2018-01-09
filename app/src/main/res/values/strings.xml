@@ -31,5 +31,7 @@
     <string name="action_save_short">Save</string>
 
     <string name="pick_date">Select a Date</string>
+    <string name="prompt_hostport">Maximo Host:Port</string>
+    <string name="error_host_port">Missing Maximo host:port</string>
 
 </resources>
