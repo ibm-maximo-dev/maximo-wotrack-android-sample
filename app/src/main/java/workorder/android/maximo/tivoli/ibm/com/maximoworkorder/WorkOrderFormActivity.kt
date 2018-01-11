@@ -192,7 +192,10 @@ class WorkOrderFormActivity : AppCompatActivity() {
         }
 
         objectBuilder.add("description", description.text.toString())
-        objectBuilder.add("estdur", duration.text.toString().toDouble())
+
+        // toDouble will cause NPE on empty string
+        if (!duration.text.isBlank())
+            objectBuilder.add("estdur", duration.text.toString().toDouble())
 
         var simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         if (!TextUtils.isEmpty(schedule_start_date.text.toString())) {
