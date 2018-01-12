@@ -28,7 +28,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support:design:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.ibm.maximo:maximo-restclient:1.1'
+    compile 'com.ibm.maximo:maximo-restclient:1.0.2'
     // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
     //compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.2.12'
     // https://mvnrepository.com/artifact/xml-apis/xml-apis
