@@ -8,6 +8,16 @@
     tools:context="workorder.android.maximo.tivoli.ibm.com.maximoworkorder.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
+    <ProgressBar
+        android:id="@+id/list_progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -17,7 +27,8 @@
             android:id="@+id/workorder_list_main"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="vertical"></ListView>
+            android:scrollbars="vertical">
+        </ListView>
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton

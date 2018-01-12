@@ -20,6 +20,8 @@ import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.content_main.*
+
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -27,7 +29,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     lateinit var workOrderListIntent : Intent
     lateinit var personName : String
     lateinit var personEmail : String
-    lateinit var workOrderList : WorkOrderList
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +87,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
+        Log.d("APP", "Item selected")
         when (item.itemId) {
             /*
             R.id.nav_camera -> {
@@ -111,6 +113,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 Log.d("APP", "Loading Work Orders list")
                 loadWorkOrders()
             }
+            R.id.nav_logout -> {
+                Log.d("APP", "Logging out")
+                logout()
+            }
         }
 
         drawer_layout.closeDrawer(GravityCompat.START)
@@ -118,19 +124,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun loadMainWorkOrders() {
+        // Show a progress spinner, and kick off a background task to
+        // perform the user login attempt.
+        showProgress(true)
+
         MaximoAPI.INSTANCE.listWorkOrders({ workOrderSet ->
             Log.d("APP", "Data retrieved successfully")
             var listView = findViewById<ListView>(R.id.workorder_list_main)
             var addButton = findViewById<FloatingActionButton>(R.id.add_button_main)
             WorkOrderList.mWorkOrderSet = workOrderSet
-            workOrderList = WorkOrderList(this, listView, addButton)
+            WorkOrderList(this, listView, addButton)
+            showProgress(false)
         }, { t ->
             Log.d("APP", "Error", t)
             showProgress(false)
             Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
         })
     }
-
 
     private fun loadWorkOrders() {
         // Show a progress spinner, and kick off a background task to
@@ -154,6 +164,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             showProgress(false)
             Toast.makeText(this, t.message, Toast.LENGTH_SHORT).show()
         })
+    }
+
+    private fun logout() {
+        workOrderListDisplayed = false
+        var loginActivity = Intent(this@MainActivity.baseContext, LoginActivity::class.java)
+        startActivity(loginActivity)
     }
 
     /**

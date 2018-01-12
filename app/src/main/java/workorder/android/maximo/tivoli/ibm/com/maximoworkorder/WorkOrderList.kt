@@ -24,47 +24,15 @@ class WorkOrderList {
 
     enum class Operation {PREVIOUS, NEXT}
 
-    private val uiHandler = Handler(Looper.getMainLooper())
-
     constructor(context: Context, listView: ListView, add_button: FloatingActionButton) {
         listView.adapter = WorkOrderCustomAdapter(context, mWorkOrderSet)
         listView.onItemClickListener = WorkOrderItemSelectedListener(context)
-        var scrollListener = WorkOrderScrollerListener(5,this, context, listView)
+        var scrollListener = WorkOrderScrollerListener(5, context, listView)
         listView.setOnScrollListener (scrollListener)
 
         add_button.setOnClickListener(View.OnClickListener() {
             var workOrderFormIntent = Intent(context, WorkOrderFormActivity::class.java)
             ContextCompat.startActivity(context, workOrderFormIntent, null)
-        })
-    }
-
-    /**
-     * Method for loading data in listview
-     * @param number
-     */
-    private fun loadPage(operation: Operation, onOk: ()->Unit, onError: (t: Throwable)->Unit) {
-        AsyncTask.execute({
-            try {
-                val resultList = mutableListOf<JsonObject>()
-                resultList.addAll(mWorkOrderSet.workOrderList)
-
-                if (operation == Operation.PREVIOUS)
-                    mWorkOrderSet.resourceSet.previousPage()
-                else
-                    mWorkOrderSet.resourceSet.nextPage()
-                var i = 0
-                while (i.toInt() < MaximoAPI.PAGE_SIZE) {
-                    val resource = mWorkOrderSet.resourceSet.member(i)
-                    i = i.inc()
-                    resultList.add(resource.toJSON())
-                }
-                mWorkOrderSet = WorkOrderViewModel.WorkOrderSet(mWorkOrderSet.resourceSet,
-                        mWorkOrderSet.totalCount, mWorkOrderSet.pageSize, resultList)
-
-                uiHandler.post({onOk()})
-            } catch (t: Throwable) {
-                uiHandler.post({onError(t)})
-            }
         })
     }
 
@@ -83,21 +51,51 @@ class WorkOrderList {
         }
     }
 
-    private class WorkOrderScrollerListener(visibleThreshold: Int, list: WorkOrderList,
+    private class WorkOrderScrollerListener(visibleThreshold: Int,
                                             context: Context, listView: ListView) : EndlessScrollListener(visibleThreshold) {
         private val mContext: Context
-        private val mList: WorkOrderList
         private val mListView : ListView
+        private val uiHandler = Handler(Looper.getMainLooper())
 
         init {
             mContext = context
-            mList = list
             mListView = listView
         }
 
+        /**
+         * Method for loading data in listview
+         * @param number
+         */
+        private fun loadPage(operation: Operation, onOk: ()->Unit, onError: (t: Throwable)->Unit) {
+            AsyncTask.execute({
+                try {
+                    val resultList = mutableListOf<JsonObject>()
+                    resultList.addAll(mWorkOrderSet.workOrderList)
+
+                    if (operation == Operation.PREVIOUS)
+                        mWorkOrderSet.resourceSet.previousPage()
+                    else
+                        mWorkOrderSet.resourceSet.nextPage()
+                    var i = 0
+                    while (i.toInt() < MaximoAPI.PAGE_SIZE) {
+                        val resource = mWorkOrderSet.resourceSet.member(i)
+                        i = i.inc()
+                        resultList.add(resource.toJSON())
+                    }
+                    mWorkOrderSet = WorkOrderViewModel.WorkOrderSet(mWorkOrderSet.resourceSet,
+                            mWorkOrderSet.totalCount, mWorkOrderSet.pageSize, resultList)
+
+                    uiHandler.post({onOk()})
+                } catch (t: Throwable) {
+                    uiHandler.post({onError(t)})
+                }
+            })
+        }
+
         override fun onLoadMore(page: Int, totalItemsCount: Int): Boolean {
-            mList.loadPage(Operation.NEXT, {
+            loadPage(Operation.NEXT, {
                 (mListView.adapter as WorkOrderCustomAdapter).updateWorkOrderSet(mWorkOrderSet)
+
             }, { t ->
                 Toast.makeText(mContext, t.message, Toast.LENGTH_SHORT).show()
             })
