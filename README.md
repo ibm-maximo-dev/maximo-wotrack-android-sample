@@ -2,7 +2,17 @@
 
 This simple Android Kotlin application demonstrates how easily developers and business partners can build their own solutions by leveraging the Maximo REST APIs. This tutorial shows how to use these APIs and provides instructions for building and testing developed applications.
 
-This sample application includes the following set of features:
+## Pre-requisites
+
+- Android Studio 3.0.1 (optional but recommended)
+- Android SDK 26
+- Android Build Tools v26.0.2
+- Gradle 4.1
+- Git
+
+## Getting Started
+
+This sample uses the Gradle build system. To build this project, use the "gradlew build" command or use "Import Project" in Android Studio.
 
 ## Login / Logout
 This feature allows the users to login by using the built-in authentication mechanisms.
@@ -41,6 +51,13 @@ try {
     // Handle authentication failures here...
 }
 ```
+
+To end a user session, just use the same instance of the MaximoConnector object used for the Application Login.
+
+```kotlin
+connector.disconnect() // Log out of Maximo
+```
+
 ## List Work Orders that are Waiting for Approval
 This feature allows the users to list all work orders that are in the Waiting for Approval status and are visible to their organization and Site.
 This API method provides a set of input parameters that the users can supply to select a collection of work orders records.
@@ -123,7 +140,8 @@ The following list shows the most commonly used actions and input parameters tha
 After these elements are successfully loaded into the ResourceSet, they must be convered into a friendly data format that is usable inside the application context. That's when JSON objects are used.
  ```kotlin
      val resourceObject = workOrderSet.member(0) // I am a Resource object
-     val jsonObject = resourceObject.toJSON() // I am a JSON object, much more friendly and human-readable.
+     val jsonObject = resourceObject.toJSON() // I am a JSON object, 
+                                              // much more friendly and human-readable.
  ```
 The Resource class is simply a data object representation of an object structure. It provides several utility methods to update, merge, add or even delete an Object Structure. It also provides methods to allow conversions to other data types like: JSON or byte arrays. In the previous example, after a previously loaded Resource object is fetched, it is converted to its JSON object representation.
 
@@ -169,7 +187,8 @@ This is a very simplified code example for creating a new Work Order:
  ```kotlin
 // Building a new Work Order JSON object.
 var workOrder = buildWorkOrderJSON()
-// Using the MaximoConnector object previously obtained during the Application Login to build the URI string.
+// Using the MaximoConnector object previously obtained during 
+// the Application Login to build the URI string.
 var uri = connector.currentURI + "/os/mxwo"
 // Invoking the create() method available in the MaximoConnector component.
 connector.create(uri, workOrder)
@@ -194,7 +213,8 @@ Here is another simplified example on how to update an existing Work Order:
  ```kotlin
 // Obtaining an updated instance of the Work Order.
 var updatedWorkOrder = updateWorkOrder(originalWorkOrder)
-// Using the MaximoConnector object previously obtained during the Application Login to build the URI string.
+// Using the MaximoConnector object previously obtained during 
+// the Application Login to build the URI string.
 var uri = connector.currentURI + "/os/mxwo/" + updatedWorkOrder.getJsonNumber("workorderid")
 // Invoking the update() method available in the MaximoConnector component.
 connector.update(uri, updatedWorkOrder)
