@@ -158,7 +158,7 @@ The objectBuilder component works similar to a Map data structure. It holds a ke
 The process for creating a new Work Order is very simple. The most complex piece is building a JSON object that represents a new Work Order record. This can sometimes be a little time consuming, given the large number of attributes available in the MXWO Object Structure. Also, it is very important that you observe the following set of rules:
 
 - All Maximo field and attribute rules and validations are also applicable when using the Maximo REST API methods.
-- Make sure that all the required fields have been informed.
+- Make sure that all the required fields have values.
 - Take special care with domain attributes, so that you don't end up using an invalid value.
 
 If you follow these instructions you'll likely avoid some exceptions, headaches and save some time.
