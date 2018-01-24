@@ -4,15 +4,12 @@ This simple Android Kotlin application demonstrates how easily developers and bu
 
 ## Pre-requisites
 
-- Android Studio 3.0.1 (optional but recommended)
-- Android SDK 26
-- Android Build Tools v26.0.2
-- Gradle 4.1
-- Git
+- Android Studio 3.0.1 or later
+- Maximo 7.6
 
 ## Getting Started
 
-This sample uses the Gradle build system. To build this project, use the "gradlew build" command or use "Import Project" in Android Studio.
+Open this sample in Android Studio.
 
 ## Login / Logout
 This feature allows the users to login by using the built-in authentication mechanisms.
@@ -71,8 +68,8 @@ val workOrderSet = connector.resourceSet("mxwo") // This returns a ResourceSet o
 val resultList = mutableListOf<JsonObject>() // Creates an empty list to hold JsonObject instances.
 workOrderSet.paging(true) // Enable pagination.
 workOrderSet.pageSize(PAGE_SIZE) // Set the page size.
-// Use OSLC query syntax to skip tasks and only fetch Work Orders that are "Waiting for Approval"
-workOrderSet.where("spi:istask=0 and spi:status='WAPPR'")
+// Use the following query to skip tasks and only fetch Work Orders that are "Waiting for Approval"
+workOrderSet.where("spi:istask=0 and spi:status=\"WAPPR\"")
 workOrderSet.orderBy("spi:wonum") // Ordering by Work Order Number
 workOrderSet.fetch()
 var i = 0
@@ -137,7 +134,7 @@ The following list shows the most commonly used actions and input parameters tha
      workOrderSet.searchTerms("pump", "broken")
  ```
 
-After these elements are successfully loaded into the ResourceSet, they must be convered into a friendly data format that is usable inside the application context. That's when JSON objects are used.
+After these elements are successfully loaded into the ResourceSet, they must be convered into a friendly data format that is usable inside the application context. That's when JSON (JavaScript Object Notation) objects are used.
  ```kotlin
      val resourceObject = workOrderSet.member(0) // I am a Resource object
      val jsonObject = resourceObject.toJSON() // I am a JSON object, 
@@ -152,7 +149,7 @@ Before we discuss the actual methods available for updating and creating new dat
 
 ### JSON
 
-REST APIs usually rely on JSON (JavaScript Object Notation) format to transport data between the client and the server.
+REST APIs usually rely on JSON format to transport data between the client and the server.
 Hence, in order to modify or create records, you need to provide a JSON representation of the record you wish to modify or create as an input for the API method.
 
 Building and modifying JSON structures can be easily accomplished by the use of specific APIs, almost every modern programming language provides a set of APIs to build and manipulate JSON. In this tutorial, we exhibit a very simple example of how to build JSON objects in the Android/Kotlin programming language.
