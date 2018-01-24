@@ -113,7 +113,7 @@ The following list shows the most commonly used actions and input parameters tha
  ```kotlin
      workOrderSet.select("spi:wonum", "spi:description", "spi:status")
  ```
- - oslc.where: A String parameter in the OSLC query syntax format (SQL-based) that allows the user to define a where clause to filter the record set.
+ - oslc.where: A String parameter that allows the user to define a SQL-based where clause to filter the record set.
   ```kotlin
      workOrderSet.where("spi:istask=0 and spi:status='WAPPR'")
  ```
