@@ -216,3 +216,10 @@ var uri = connector.currentURI + "/os/mxwo/" + updatedWorkOrder.getJsonNumber("w
 // Invoking the update() method available in the MaximoConnector component.
 connector.update(uri, updatedWorkOrder)
  ```
+## Give us your Feedback
+Let us know your opinion of this sample by completing this short (3 minute) survey.
+
+[Android sample feedback](https://www.surveygizmo.com/s3/4251728/Maximo-DevCenter-native-Android-sample-feedback)
+
+## IBM Maximo Developer Center
+For more samples and content about integrating with IBM Maximo, see the [IBM Maximo Developer Center](http://developer.ibm.com/assetmanagement/).
