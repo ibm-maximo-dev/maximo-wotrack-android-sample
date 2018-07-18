@@ -98,8 +98,8 @@ class LoginActivity : AppCompatActivity() {
 
                 val intent = Intent(this@LoginActivity.baseContext, MainActivity::class.java)
                 var person = MaximoAPI.INSTANCE.loggedUser
-                intent.putExtra("PersonName", person.getString("displayname"))
-                intent.putExtra("PersonEmail", person.getString("primaryemail"))
+                intent.putExtra("PersonName", person.getString("displayname", "Unknown User"))
+                intent.putExtra("PersonEmail", person.getString("primaryemail", "No Email Set"))
                 startActivity(intent)
             }, { t ->
                 Log.d("APP", "Error", t)

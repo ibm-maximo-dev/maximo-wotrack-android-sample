@@ -187,8 +187,8 @@ class WorkOrderFormActivity : AppCompatActivity() {
         }
         else {
             objectBuilder.add("wonum", wonum.text.toString())
-            objectBuilder.add("siteid", MaximoAPI.INSTANCE.loggedUser.getString("locationsite"))
-            objectBuilder.add("orgid", MaximoAPI.INSTANCE.loggedUser.getString("locationorg"))
+            objectBuilder.add("siteid", MaximoAPI.INSTANCE.loggedUser.getString("locationsite",  "BEDFORD"))
+            objectBuilder.add("orgid", MaximoAPI.INSTANCE.loggedUser.getString("locationorg", "EAGLENA"))
         }
 
         objectBuilder.add("description", description.text.toString())
